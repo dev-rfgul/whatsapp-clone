@@ -1,6 +1,7 @@
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
-import { auth } from './firebase'
+import { auth, db } from './firebase'
+import { setDoc, doc } from 'firebase/firestore';
 const AuthPage = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -13,6 +14,13 @@ const AuthPage = () => {
             const user = auth.currentUser
             console.log(user)
             console.log("User registered Successfully ")
+            if (user) {
+                await setDoc(doc(db, "Users", user.uid), {
+                    email: user.email,
+                    name: name
+                })
+                console.log("user saved successfully")
+            }
         } catch (error) {
             console.log(error.message)
         }
