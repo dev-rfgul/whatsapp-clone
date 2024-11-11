@@ -1,51 +1,63 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db } from './firebase'; // Ensure you have the correct imports
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { getDocs, getDoc,doc, collection } from 'firebase/firestore';
+import ChatBox from './Chat';
 
 const HomePage = () => {
     const [users, setUsers] = useState([]);
-
-    // Fetch all users from Firestore
-    const fetchUsers = async () => {
-        try {
-            const querySnapshot = await getDocs(collection(db, "Users"));
-            const usersList = [];
-            querySnapshot.forEach((doc) => {
-                usersList.push(doc.data()); // Push user data into an array
-            });
-            setUsers(usersList); // Set the users state with the fetched users
-        } catch (error) {
-            console.log("Error fetching users:", error);
-        }
-    };
+    const [currentUser, setCurrentUser] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     useEffect(() => {
-        // Fetch users when the component mounts
+        const fetchUsers = async () => {
+            const usersCollection = collection(db, "Users");
+            const usersSnapshot = await getDocs(usersCollection);
+            const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setUsers(usersList);
+        };
+
+        const fetchCurrentUser = () => {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const userDocRef = doc(db, "Users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists()) {
+                        setCurrentUser({ id: user.uid, ...userDocSnap.data() });
+                    }
+                }
+            });
+        };
+
         fetchUsers();
+        fetchCurrentUser();
     }, []);
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-900">
-            <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-center text-white">Home Page</h2>
+        <div className="min-h-screen bg-gray-900 text-white">
+            <header className="flex justify-end items-center p-4 bg-gray-800">
+                <h2>Welcome, {currentUser?.name || "User"}</h2>
+            </header>
 
-                {/* Display users as cards */}
-                <div className="grid grid-cols-1 gap-4 mt-6">
-                    {users.length > 0 ? (
-                        users.map((user, index) => (
-                            <div
-                                key={index}
-                                className="p-4 bg-gray-700 rounded-md shadow-md"
-                            >
-                                <h3 className="text-lg font-semibold text-white">{user.name}</h3>
-                                <p className="text-sm text-gray-300">{user.email}</p>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-center text-white">No users found</p>
-                    )}
-                </div>
+            <div className="flex flex-wrap justify-center p-4">
+                {users.map((user) => (
+                    <div
+                        key={user.id}
+                        className="m-4 p-4 w-64 bg-gray-800 rounded-lg shadow-md cursor-pointer"
+                        onClick={() => setSelectedUser(user)}
+                    >
+                        <h3 className="text-lg font-semibold text-white">{user.name || "Anonymous User"}</h3>
+                        <p className="text-gray-400">{user.email}</p>
+                    </div>
+                ))}
             </div>
+
+            {/* Show ChatBox if a user is selected */}
+            {selectedUser && currentUser && (
+                <div className="fixed bottom-0 right-0 m-4 w-full max-w-md">
+                    <ChatBox currentUser={currentUser} selectedUser={selectedUser} />
+                </div>
+            )}
         </div>
     );
 };
