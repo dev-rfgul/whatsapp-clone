@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { getDocs, getDoc,doc, collection } from 'firebase/firestore';
+import { getDocs, getDoc, doc, collection } from 'firebase/firestore';
 import ChatBox from './Chat';
 
 const HomePage = () => {
@@ -10,13 +10,6 @@ const HomePage = () => {
     const [selectedUser, setSelectedUser] = useState(null);
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            const usersCollection = collection(db, "Users");
-            const usersSnapshot = await getDocs(usersCollection);
-            const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setUsers(usersList);
-        };
-
         const fetchCurrentUser = () => {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
@@ -29,9 +22,25 @@ const HomePage = () => {
             });
         };
 
-        fetchUsers();
         fetchCurrentUser();
     }, []);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if (currentUser) {
+                const usersCollection = collection(db, "Users");
+                const usersSnapshot = await getDocs(usersCollection);
+                const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Exclude the current user from the list
+                const filteredUsers = usersList.filter(user => user.id !== currentUser.id);
+                
+                setUsers(filteredUsers);
+            }
+        };
+
+        fetchUsers();
+    }, [currentUser]); // Only fetch users when currentUser is set
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -39,18 +48,21 @@ const HomePage = () => {
                 <h2>Welcome, {currentUser?.name || "User"}</h2>
             </header>
 
-            <div className="flex flex-wrap justify-center p-4">
-                {users.map((user) => (
-                    <div
-                        key={user.id}
-                        className="m-4 p-4 w-64 bg-gray-800 rounded-lg shadow-md cursor-pointer"
-                        onClick={() => setSelectedUser(user)}
-                    >
-                        <h3 className="text-lg font-semibold text-white">{user.name || "Anonymous User"}</h3>
-                        <p className="text-gray-400">{user.email}</p>
-                    </div>
-                ))}
-            </div>
+            {/* Render users only when currentUser is set */}
+            {currentUser && (
+                <div className="flex flex-wrap justify-center p-4">
+                    {users.map((user) => (
+                        <div
+                            key={user.id}
+                            className="m-4 p-4 w-64 bg-gray-800 rounded-lg shadow-md cursor-pointer"
+                            onClick={() => setSelectedUser(user)}
+                        >
+                            <h3 className="text-lg font-semibold text-white">{user.name || "Anonymous User"}</h3>
+                            <p className="text-gray-400">{user.email}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Show ChatBox if a user is selected */}
             {selectedUser && currentUser && (
