@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { db } from './firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { IoSend } from 'react-icons/io5';
+import { IoSend, IoClose } from 'react-icons/io5';
+import '../CSS/Chatbox.css'; // Import a CSS file for animations
 
-const ChatBox = ({ currentUser, selectedUser }) => {
-
+const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
     const imgs = {
         "1": "https://cdn-icons-png.flaticon.com/512/3177/3177440.png",
         "2": "https://cdn-icons-png.flaticon.com/512/1326/1326405.png",
@@ -17,22 +17,16 @@ const ChatBox = ({ currentUser, selectedUser }) => {
         "9": "https://cdn-icons-png.flaticon.com/512/3940/3940417.png",
     };
 
-    const randomImg = () => {
+    const randomImg = useMemo(() => {
         const randomKey = (Math.floor(Math.random() * 9) + 1).toString();
         return imgs[randomKey];
-    };
-
-    // Example usage:
-    const imageUrl = randomImg();
-    console.log(imageUrl); // Logs a random image URL from the imgs object
+    }, []);
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
+    const [animateBg, setAnimateBg] = useState(false);
 
-    // Unique chat ID based on user IDs (sorted to ensure consistency)
     const chatID = [currentUser.id, selectedUser.id].sort().join("_");
-
-    // Reference for the message container
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
@@ -42,13 +36,14 @@ const ChatBox = ({ currentUser, selectedUser }) => {
         const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
             const messagesList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setMessages(messagesList);
+            setAnimateBg(true);
+            setTimeout(() => setAnimateBg(false), 300); // Reset animation after 300ms
         });
 
-        return unsubscribe; // Unsubscribe when component unmounts
+        return unsubscribe;
     }, [chatID]);
 
     useEffect(() => {
-        // Scroll to the bottom when messages change
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
@@ -74,38 +69,48 @@ const ChatBox = ({ currentUser, selectedUser }) => {
         }
     };
 
+    const handleCloseChat = () => {
+        setIsChatOpen(false);
+    };
+
     return (
-        <div className="bg-gray-900 text-white rounded-lg p-4 w-full max-w-md flex flex-col h-[80vh]">
+        <div className="chat-box bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-lg shadow-xl p-4 w-full max-w-full flex flex-col h-[80vh] sm:h-[90vh] md:h-[80vh] lg:h-[70vh] xl:h-[60vh]">
             {/* Chat Header */}
-            <div className="flex items-center border-b border-gray-700 pb-2 mb-2">
-                <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gray-500 rounded-full">
-                        <img src={imageUrl} alt="" /></div>
-                    <h3 className="text-lg font-semibold">
+            <div className="flex items-center border-b border-gray-700 pb-3 mb-4">
+                <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-500 rounded-full overflow-hidden shadow-lg border-2 border-green-400">
+                        <img src={randomImg} alt="User Avatar" className="object-cover w-full h-full" />
+                    </div>
+                    <h3 className="text-lg font-semibold sm:text-xl text-green-400">
                         {selectedUser.name || "Anonymous User"}
                     </h3>
                 </div>
+                <button
+                    onClick={handleCloseChat}
+                    className="ml-auto p-2 text-gray-400 hover:text-red-500 transition-colors duration-200"
+                >
+                    <IoClose size={22} />
+                </button>
             </div>
 
             {/* Messages Container */}
-            <div className="flex flex-col space-y-2 h-full overflow-y-auto p-2 bg-gray-800 rounded-lg">
+            <div className={`messages-container flex flex-col space-y-3 h-full overflow-y-auto p-3 rounded-lg shadow-inner mb-4 ${animateBg ? 'bg-animation' : 'bg-gray-800'}`}>
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
-                        className={`max-w-xs p-2 rounded-lg text-sm shadow-md ${msg.senderID === currentUser.id
+                        className={`max-w-xs p-3 rounded-lg text-sm shadow-lg ${msg.senderID === currentUser.id
                             ? "bg-green-500 text-white self-end rounded-br-none"
-                            : "bg-gray-300 text-gray-900 self-start rounded-bl-none"
+                            : "bg-gray-700 text-gray-300 self-start rounded-bl-none"
                             }`}
                     >
                         <p>{msg.content}</p>
                     </div>
                 ))}
-                {/* Dummy div to scroll into view */}
                 <div ref={messagesEndRef}></div>
             </div>
 
             {/* Message Input */}
-            <div className="mt-4 flex items-center bg-gray-700 rounded-lg p-2">
+            <div className="mt-4 flex items-center bg-gray-700 rounded-full p-3 shadow-lg">
                 <input
                     type="text"
                     value={newMessage}
@@ -116,9 +121,9 @@ const ChatBox = ({ currentUser, selectedUser }) => {
                 />
                 <button
                     onClick={handleSendMessage}
-                    className="ml-2 p-2 bg-green-500 rounded-full text-white hover:bg-green-600"
+                    className="ml-2 p-2 bg-green-500 rounded-full text-white hover:bg-green-600 transition-transform transform hover:scale-105"
                 >
-                    <IoSend size={18} />
+                    <IoSend size={20} />
                 </button>
             </div>
         </div>

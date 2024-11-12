@@ -1,0 +1,12 @@
+/* ChatBox.css */
+
+@keyframes bgPulse {
+    0% { background-color: #1f2937; }
+    50% { background-color: #111827; }
+    100% { background-color: #1f2937; }
+  }
+  
+  .bg-animation {
+    animation: bgPulse 0.3s ease-in-out;
+  }
+  
