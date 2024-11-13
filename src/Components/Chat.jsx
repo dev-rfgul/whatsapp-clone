@@ -145,11 +145,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { db } from './firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, limit } from 'firebase/firestore';
 import { IoSend, IoClose } from 'react-icons/io5';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useDebounce } from 'use-debounce';
-import { Picker } from 'emoji-mart';
-import '../CSS/Chatbox.css';
 
 const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
     const [messages, setMessages] = useState([]);
@@ -250,21 +245,35 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
-                        className={`flex items-center ${msg.senderID === currentUser.id ? 'self-end' : 'self-start'}`}
+                        className={`flex items-center ${msg.senderID === currentUser.id ? 'justify-end' : 'justify-start'}`}
                     >
-                        <img
-                            src={getImage(msg.senderID === currentUser.id ? currentUser : selectedUser)}
-                            alt="Sender Avatar"
-                            className="w-8 h-8 rounded-full mr-2"
-                        />
-                        <div className={`max-w-xs p-3 rounded-lg text-sm shadow-lg ${msg.senderID === currentUser.id
-                            ? "bg-green-500 text-white rounded-br-none"
-                            : "bg-gray-700 text-gray-300 rounded-bl-none"
-                            }`}
+                        {/* Conditionally render avatar on the left for receiver, on the right for sender */}
+                        {msg.senderID !== currentUser.id && (
+                            <img
+                                src={getImage(selectedUser)}
+                                alt="Sender Avatar"
+                                className="w-8 h-8 rounded-full mr-2 shadow-lg"
+                            />
+                        )}
+
+                        <div
+                            className={`max-w-xs p-3 rounded-lg text-sm shadow-lg ${msg.senderID === currentUser.id
+                                    ? 'bg-green-500 text-white rounded-br-none'
+                                    : 'bg-gray-700 text-gray-300 rounded-bl-none'
+                                }`}
                         >
                             <p>{msg.content}</p>
                         </div>
+
+                        {msg.senderID === currentUser.id && (
+                            <img
+                                src={getImage(currentUser)}
+                                alt="Receiver Avatar"
+                                className="w-8 h-8 rounded-full ml-2 shadow-lg"
+                            />
+                        )}
                     </div>
+
                 ))}
                 <div ref={messagesEndRef}></div>
             </div>

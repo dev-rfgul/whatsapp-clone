@@ -72,7 +72,7 @@ const HomePage = () => {
         <div className="min-h-screen bg-gradient-to-br from-teal-900 to-green-800 text-off-white flex flex-col items-center justify-start py-8">
 
             <header className="flex justify-between items-center p-6 w-full bg-teal-800 rounded-b-2xl shadow-xl">
-                <h2 className="text-2xl font-bold text-off-white">Welcome, {currentUser?.name || "User"}</h2>
+                <h2 className="text-2xl font-bold text-[#60A5FA]">Welcome, {currentUser?.name || "User"}</h2>
 
                 <div className="flex items-center space-x-4">
                     <img
@@ -107,7 +107,7 @@ const HomePage = () => {
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                             <div className="flex flex-col  p-3 rounded-lg shadow-md w-full">
-                                <h3 className="text-lg font-semibold text-[#E5E7EB] mb-1 truncate">{user.name || "Anonymous User"}</h3>
+                                <h3 className="text-lg font-semibold text-teal-400 mb-1 truncate">{user.name || "Anonymous User"}</h3>
                                 <p className="text-sm text-[#60A5FA] truncate">{user.email}</p>
                             </div>
                         </div>
