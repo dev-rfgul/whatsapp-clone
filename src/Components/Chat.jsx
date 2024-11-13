@@ -260,10 +260,6 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
             </div>
 
 
-            {/* Typing Indicator */}
-            {typing && (
-                <div className="text-gray-400 text-sm mb-2">User is typing...</div>
-            )}
 
             {/* Messages Container */}
             <div className={`messages-container flex flex-col space-y-3 h-full overflow-y-auto p-3 rounded-lg shadow-inner mb-4 ${animateBg ? 'bg-animation' : 'bg-gray-800'}`}>
