@@ -1,3 +1,4 @@
+
 // import React, { useEffect, useState } from 'react';
 // import { auth, db } from './firebase';
 // import { onAuthStateChanged } from 'firebase/auth';
@@ -8,6 +9,7 @@
 //     const [users, setUsers] = useState([]);
 //     const [currentUser, setCurrentUser] = useState(null);
 //     const [selectedUser, setSelectedUser] = useState(null);
+//     const [isChatOpen, setIsChatOpen] = useState(false);  // New state to track chat visibility
 
 //     useEffect(() => {
 //         const fetchCurrentUser = () => {
@@ -55,7 +57,10 @@
 //                         <div
 //                             key={user.id}
 //                             className="m-4 p-4 w-64 bg-gray-800 rounded-lg shadow-md cursor-pointer"
-//                             onClick={() => setSelectedUser(user)}
+//                             onClick={() => {
+//                                 setSelectedUser(user);
+//                                 setIsChatOpen(true);  // Open the chat when a user is selected
+//                             }}
 //                         >
 //                             <h3 className="text-lg font-semibold text-white">{user.name || "Anonymous User"}</h3>
 //                             <p className="text-gray-400">{user.email}</p>
@@ -65,9 +70,13 @@
 //             )}
 
 //             {/* Show ChatBox if a user is selected */}
-//             {selectedUser && currentUser && (
+//             {isChatOpen && selectedUser && currentUser && (
 //                 <div className="fixed bottom-0 right-0 m-4 w-full max-w-md">
-//                     <ChatBox currentUser={currentUser} selectedUser={selectedUser} />
+//                     <ChatBox
+//                         currentUser={currentUser}
+//                         selectedUser={selectedUser}
+//                         setIsChatOpen={setIsChatOpen}  // Pass setIsChatOpen to ChatBox
+//                     />
 //                 </div>
 //             )}
 //         </div>
@@ -87,7 +96,7 @@ const HomePage = () => {
     const [users, setUsers] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [isChatOpen, setIsChatOpen] = useState(false);  // New state to track chat visibility
+    const [isChatOpen, setIsChatOpen] = useState(false); // Added state to control visibility
 
     useEffect(() => {
         const fetchCurrentUser = () => {
@@ -120,25 +129,27 @@ const HomePage = () => {
         };
 
         fetchUsers();
-    }, [currentUser]); // Only fetch users when currentUser is set
+    }, [currentUser]);
+
+    const handleUserClick = (user) => {
+        setSelectedUser(user);
+        setIsChatOpen(true); // Open chat when a user is selected
+    };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
-            <header className="flex justify-end items-center p-4 bg-gray-800">
+        <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center py-4">
+            <header className="flex justify-center items-center p-4 bg-gray-800 w-full">
                 <h2>Welcome, {currentUser?.name || "User"}</h2>
             </header>
 
             {/* Render users only when currentUser is set */}
             {currentUser && (
-                <div className="flex flex-wrap justify-center p-4">
+                <div className="flex flex-wrap justify-center p-4 w-full">
                     {users.map((user) => (
                         <div
                             key={user.id}
                             className="m-4 p-4 w-64 bg-gray-800 rounded-lg shadow-md cursor-pointer"
-                            onClick={() => {
-                                setSelectedUser(user);
-                                setIsChatOpen(true);  // Open the chat when a user is selected
-                            }}
+                            onClick={() => handleUserClick(user)} // Open chat on user click
                         >
                             <h3 className="text-lg font-semibold text-white">{user.name || "Anonymous User"}</h3>
                             <p className="text-gray-400">{user.email}</p>
@@ -149,11 +160,11 @@ const HomePage = () => {
 
             {/* Show ChatBox if a user is selected */}
             {isChatOpen && selectedUser && currentUser && (
-                <div className="fixed bottom-0 right-0 m-4 w-full max-w-md">
+                <div className="w-full max-w-4xl p-4">
                     <ChatBox
                         currentUser={currentUser}
                         selectedUser={selectedUser}
-                        setIsChatOpen={setIsChatOpen}  // Pass setIsChatOpen to ChatBox
+                        setIsChatOpen={setIsChatOpen} // Pass function to close the chatbox
                     />
                 </div>
             )}
