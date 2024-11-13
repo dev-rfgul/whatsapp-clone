@@ -155,9 +155,6 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [animateBg, setAnimateBg] = useState(false);
-    const [typing, setTyping] = useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
     const chatID = [currentUser.id, selectedUser.id].sort().join("_");
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null); // Reference for the input field
@@ -202,28 +199,16 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
         setNewMessage("");
     };
 
-    // Handle typing indicator
-    const handleTyping = () => {
-        if (!typing) {
-            setTyping(true);
-            setTimeout(() => setTyping(false), 1000);
-        }
-    };
 
     // Handle enter key for sending messages
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             handleSendMessage();
         } else {
-            handleTyping();
+            console.log("ERROR");
         }
     };
 
-    // Handle emoji select
-    const handleEmojiSelect = (emoji) => {
-        setNewMessage(newMessage + emoji.native);
-        setShowEmojiPicker(false);
-    };
 
     // Handle closing the chat
     const handleCloseChat = () => {
@@ -232,7 +217,7 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
 
     // Fallback default image
     const getImage = (user) => {
-        return user.image || 'default-avatar.png'; // Use default image if URL is not available
+        return user.image || 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png'; // Use default image if URL is not available
     };
 
     const clog = () => {
