@@ -1,50 +1,46 @@
 
 // import { createUserWithEmailAndPassword } from 'firebase/auth';
 // import React, { useEffect, useState } from 'react';
-// import { auth, googleProvider, db } from './firebase';
+// import { auth, googleProvider, db, storage } from './firebase'; // import storage
 // import { signInWithPopup } from 'firebase/auth';
 // import { setDoc, doc, getDoc } from 'firebase/firestore';
+// import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // for uploading images
 
 // const AuthPage = () => {
 //     const [email, setEmail] = useState("");
 //     const [password, setPassword] = useState("");
 //     const [name, setName] = useState("");
-//     const [loading, setLoading] = useState(false); // for tracking form submission
-//     const [value, setValue] = useState(localStorage.getItem('email') || ""); // state for storing email
+//     const [image, setImage] = useState(null); // for storing the image file
+//     const [loading, setLoading] = useState(false);
+//     const [value, setValue] = useState(localStorage.getItem('email') || "");
 
-//     // const handleSubmit = async (e) => {
-//     //     e.preventDefault();
-//     //     setLoading(true); // set loading to true when form is submitted
-//     //     try {
-//     //         await createUserWithEmailAndPassword(auth, email, password);
-//     //         const user = auth.currentUser;
-//     //         console.log(user);
-//     //         console.log("User registered Successfully ");
-//     //         if (user) {
-//     //             await setDoc(doc(db, "Users", user.uid), {
-//     //                 email: user.email,
-//     //                 name: name
-//     //             });
-//     //             console.log("user saved successfully");
-//     //             window.location.href = '/home'; // Redirect to the home page after successful registration
-//     //         }
-//     //     } catch (error) {
-//     //         console.log(error.message);
-//     //     } finally {
-//     //         setLoading(false); // set loading to false once the process is complete
-//     //     }
-//     // };
+//     // Function to handle image upload
+//     const handleImageChange = (e) => {
+//         const file = e.target.files[0];
+//         if (file) {
+//             setImage(file);
+//         }
+//     };
 
-//     // const handleGoogleSignIn = async () => {
-//     //     try {
-//     //         const data = await signInWithPopup(auth, googleProvider);
-//     //         setValue(data.user.email);
-//     //         localStorage.setItem("email", data.user.email);
-//     //         window.location.href = '/home'
-//     //     } catch (error) {
-//     //         console.log(error.message);
-//     //     }
-//     // };
+//     // Function to upload the image to Firebase Storage and get the URL
+//     const uploadImage = async (file) => {
+//         const storageRef = ref(storage, `profilePictures/${file.name}`);
+//         const uploadTask = uploadBytesResumable(storageRef, file);
+
+//         return new Promise((resolve, reject) => {
+//             uploadTask.on(
+//                 'state_changed',
+//                 (snapshot) => {
+//                     // Optionally, show upload progress here
+//                 },
+//                 (error) => reject(error),
+//                 async () => {
+//                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+//                     resolve(downloadURL);
+//                 }
+//             );
+//         });
+//     };
 
 //     const handleSubmit = async (e) => {
 //         e.preventDefault();
@@ -53,14 +49,24 @@
 //             // Create user with email and password
 //             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 //             const user = userCredential.user;
-//             console.log(user);
-//             console.log("User registered Successfully ");
+//             console.log("User registered Successfully");
+
+//             let imageUrl = "";
+
+//             if (image) {
+//                 // If the user has uploaded an image, upload it to Firebase Storage
+//                 imageUrl = await uploadImage(image);
+//             } else {
+//                 // Set a default image for users who don't upload one
+//                 imageUrl = "https://example.com/default-profile-image.jpg"; // Use a default image URL
+//             }
 
 //             if (user) {
 //                 // Save user data to Firestore
 //                 await setDoc(doc(db, "Users", user.uid), {
 //                     email: user.email,
 //                     name: name,
+//                     image: imageUrl, // Store the image URL in Firestore
 //                 });
 //                 console.log("User saved successfully");
 //                 window.location.href = '/home'; // Redirect to the home page after successful registration
@@ -77,6 +83,8 @@
 //             // Sign in with Google
 //             const data = await signInWithPopup(auth, googleProvider);
 //             const user = data.user;
+
+//             let imageUrl = user.photoURL || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"; // Use Google photo or default
 
 //             // Log user data to debug
 //             console.log("Google User Object:", user);
@@ -98,7 +106,8 @@
 //                 await setDoc(userDocRef, {
 //                     email: user.email,
 //                     name: user.displayName || "No Name Provided", // Use displayName from Google or fallback to default
-//                     createdAt: new Date().toISOString() // Optionally, add a creation timestamp
+//                     image: imageUrl, // Save the image URL
+//                     createdAt: new Date().toISOString(), // Optionally, add a creation timestamp
 //                 });
 
 //                 console.log("Google user saved successfully to Firestore");
@@ -113,19 +122,17 @@
 //         }
 //     };
 
-
 //     useEffect(() => {
 //         // You can do something with `value` here if needed
-//     }, [value]); // This effect will run whenever `value` changes
+//     }, [value]);
 
 //     return (
 //         <>
-//                 <p className='text-white bg-black'>MY secret key is: {import.meta.env.VITE_KEY}</p>
 //             <div className="flex items-center justify-center min-h-screen bg-gray-900">
 //                 <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
 //                     <h2 className="text-2xl font-bold text-center text-white">Sign In</h2>
 
-//                     {/* Input fields for Email and Password */}
+//                     {/* Input fields for Email, Password, Name, and Image Upload */}
 //                     <form onSubmit={handleSubmit}>
 //                         <div className="space-y-4">
 //                             <div>
@@ -137,7 +144,7 @@
 //                                     type="email"
 //                                     onChange={(e) => setEmail(e.target.value)}
 //                                     value={email}
-//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md"
 //                                     placeholder="Enter your email"
 //                                 />
 //                             </div>
@@ -150,7 +157,7 @@
 //                                     type="password"
 //                                     onChange={(e) => setPassword(e.target.value)}
 //                                     value={password}
-//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md"
 //                                     placeholder="Enter your password"
 //                                 />
 //                             </div>
@@ -160,36 +167,37 @@
 //                                 </label>
 //                                 <input
 //                                     id="name"
-//                                     type="text"  // Changed type to text
+//                                     type="text"
 //                                     onChange={(e) => setName(e.target.value)}
 //                                     value={name}
-//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md"
 //                                     placeholder="Enter your Name"
+//                                 />
+//                             </div>
+//                             <div>
+//                                 <label htmlFor="image" className="block text-sm font-medium text-gray-300">
+//                                     Profile Image
+//                                 </label>
+//                                 <input
+//                                     id="image"
+//                                     type="file"
+//                                     onChange={handleImageChange}
+//                                     className="w-full px-3 py-2 mt-1 text-gray-100 bg-gray-700 border border-gray-600 rounded-md"
 //                                 />
 //                             </div>
 //                             <button
 //                                 type="submit"
-//                                 className="w-full px-4 py-2 mt-4 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                                 disabled={loading} // Disable the button while loading
+//                                 className="w-full px-4 py-2 mt-4 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+//                                 disabled={loading}
 //                             >
-//                                 {loading ? "Submitting..." : "Submit"} {/* Show loading state */}
+//                                 {loading ? "Submitting..." : "Submit"}
 //                             </button>
 //                         </div>
 //                     </form>
 
-//                     {/* Authentication buttons */}
 //                     <div className="flex flex-col space-y-3 mt-6">
-//                         <button className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-//                             Sign in with Email
-//                         </button>
-//                         <button onClick={handleGoogleSignIn} className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+//                         <button onClick={handleGoogleSignIn} className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600">
 //                             Sign in with Google
-//                         </button>
-//                         <button className="w-full px-4 py-2 text-white bg-blue-800 rounded-md hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-600">
-//                             Sign in with Facebook
-//                         </button>
-//                         <button className="w-full px-4 py-2 text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
-//                             Continue as Guest
 //                         </button>
 //                     </div>
 //                 </div>
@@ -199,6 +207,7 @@
 // };
 
 // export default AuthPage;
+
 
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
