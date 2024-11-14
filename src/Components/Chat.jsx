@@ -170,10 +170,7 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
             setAnimateBg(true);
             setTimeout(() => setAnimateBg(false), 300);
 
-            toast.info(`${selectedUser.name} has sent a message!`);
-            if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-            }
+
         });
 
         return unsubscribe;
@@ -199,13 +196,11 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             handleSendMessage();
-        } else {
-            console.log("ERROR");
         }
     };
 
 
-    // Handle closing the chat
+    // Handle closing the chat`
     const handleCloseChat = () => {
         setIsChatOpen(false);
     };
@@ -258,8 +253,8 @@ const ChatBox = ({ currentUser, selectedUser, setIsChatOpen }) => {
 
                         <div
                             className={`max-w-xs p-3 rounded-lg text-sm shadow-lg ${msg.senderID === currentUser.id
-                                    ? 'bg-green-500 text-white rounded-br-none'
-                                    : 'bg-gray-700 text-gray-300 rounded-bl-none'
+                                ? 'bg-green-500 text-white rounded-br-none'
+                                : 'bg-gray-700 text-gray-300 rounded-bl-none'
                                 }`}
                         >
                             <p>{msg.content}</p>
