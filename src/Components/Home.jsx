@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState } from 'react';
 import { auth, db, storage } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -9,14 +8,11 @@ import ChatBox from './Chat';
 
 const HomePage = () => {
     const [users, setUsers] = useState([]);
+    const [recentContacts, setRecentContacts] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [isChatOpen, setIsChatOpen] = useState(false);    
     const [isUploading, setIsUploading] = useState(false);
-
-
-
-
 
     useEffect(() => {
         const fetchCurrentUser = () => {
@@ -40,7 +36,11 @@ const HomePage = () => {
                 const usersSnapshot = await getDocs(usersCollection);
                 const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const filteredUsers = usersList.filter(user => user.id !== currentUser.id);
-                setUsers(filteredUsers);
+                
+                const recentContactsList = currentUser.recentContacts || [];
+                setRecentContacts(filteredUsers.filter(user => recentContactsList.includes(user.id)));
+                
+                setUsers(filteredUsers.filter(user => !recentContactsList.includes(user.id)));
             }
         };
         fetchUsers();
@@ -50,6 +50,10 @@ const HomePage = () => {
         if (user) {
             setSelectedUser(user);
             setIsChatOpen(true);
+
+            const updatedRecentContacts = [...new Set([user.id, ...(currentUser.recentContacts || [])])];
+            updateDoc(doc(db, "Users", currentUser.id), { recentContacts: updatedRecentContacts });
+            setCurrentUser(prev => ({ ...prev, recentContacts: updatedRecentContacts }));
         }
     };
 
@@ -76,7 +80,7 @@ const HomePage = () => {
 
                 <div className="flex items-center space-x-4">
                     <img
-                        src={currentUser?.image || "https://cdn-icons-png.flaticon.com/512/1326/1326405.png"}
+                        src={currentUser?.profileImage || "https://cdn-icons-png.flaticon.com/512/1326/1326405.png"}
                         alt="Profile"
                         className="w-16 h-16 rounded-full object-cover cursor-pointer transition-transform transform hover:scale-110"
                         onClick={() => document.getElementById('profile-image-input').click()}
@@ -93,30 +97,56 @@ const HomePage = () => {
                 onChange={handleImageChange}
             />
 
-            <div className="flex flex-wrap justify-center p-4 w-full space-x-4">
-                {users.map((user) => (
-                    <div
-                        key={user.id}
-                        className="m-4 pt-4 pl-4 w-64 bg-[#374151] rounded-lg shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300"
-                        onClick={() => handleUserClick(user)}
-                    >
-                        <div className="flex items-center mb-4">
-                            <img
-                                src={user.image || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"}
-                                alt={user.name}
-                                className="w-12 h-12 rounded-full object-cover"
-                            />
-                            <div className="flex flex-col  p-3 rounded-lg shadow-md w-full">
-                                <h3 className="text-lg font-semibold text-teal-400 mb-1 truncate">{user.name || "Anonymous User"}</h3>
-                                <p className="text-sm text-[#60A5FA] truncate">{user.email}</p>
+            <div className="flex flex-col lg:flex-row w-full mt-8 space-x-0 lg:space-x-4">
+                {/* Left Column: Recently Contacted Users */}
+                <div className="flex flex-col w-full lg:w-1/4 space-y-4">
+                    <h3 className="text-lg font-semibold text-teal-400">Recently Contacted</h3>
+                    {recentContacts.map((user) => (
+                        <div
+                            key={user.id}
+                            className="w-full bg-[#374151] rounded-lg shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300"
+                            onClick={() => handleUserClick(user)}
+                        >
+                            <div className="flex items-center p-3">
+                                <img
+                                    src={user.image || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"}
+                                    alt={user.name}
+                                    className="w-12 h-12 rounded-full object-cover"
+                                />
+                                <div className="ml-4">
+                                    <h3 className="text-lg font-semibold text-teal-400">{user.name}</h3>
+                                    <p className="text-sm text-[#60A5FA]">{user.email}</p>
+                                </div>
                             </div>
                         </div>
+                    ))}
+                </div>
+
+                {/* Right Column: Available Users in Card Form */}
+                <div className="flex flex-col w-full lg:w-3/4 space-y-4">
+                    <h3 className="text-lg font-semibold text-teal-400">Available Users</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {users.map((user) => (
+                            <div
+                                key={user.id}
+                                className="w-full bg-[#374151] rounded-lg shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300"
+                                onClick={() => handleUserClick(user)}
+                            >
+                                <div className="flex items-center p-3">
+                                    <img
+                                        src={user.image || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"}
+                                        alt={user.name}
+                                        className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                    <div className="ml-4">
+                                        <h3 className="text-lg font-semibold text-teal-400">{user.name}</h3>
+                                        <p className="text-sm text-[#60A5FA]">{user.email}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-
-                ))}
-            </div>
-
-            {isChatOpen && selectedUser && currentUser && (
+                    {isChatOpen && selectedUser && currentUser && (
                 <div className="w-full max-w-4xl p-4 mt-6 bg-teal-800 rounded-lg shadow-xl">
                     <ChatBox
                         currentUser={currentUser}
@@ -125,6 +155,12 @@ const HomePage = () => {
                     />
                 </div>
             )}
+                </div>
+                
+            </div>
+
+
+         
         </div>
     );
 };
