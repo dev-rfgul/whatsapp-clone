@@ -17,7 +17,6 @@ const App = () => {
         <Route path="/" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
         <Route path="/login" element={<Login />} />
-        App.js
         <Route
           path="/home"
           element={user ? <Home /> : <Navigate to="/home" />}

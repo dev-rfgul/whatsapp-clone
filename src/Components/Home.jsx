@@ -11,7 +11,7 @@ const HomePage = () => {
     const [recentContacts, setRecentContacts] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [isChatOpen, setIsChatOpen] = useState(false);    
+    const [isChatOpen, setIsChatOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
@@ -36,10 +36,10 @@ const HomePage = () => {
                 const usersSnapshot = await getDocs(usersCollection);
                 const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const filteredUsers = usersList.filter(user => user.id !== currentUser.id);
-                
+
                 const recentContactsList = currentUser.recentContacts || [];
                 setRecentContacts(filteredUsers.filter(user => recentContactsList.includes(user.id)));
-                
+
                 setUsers(filteredUsers.filter(user => !recentContactsList.includes(user.id)));
             }
         };
@@ -121,7 +121,6 @@ const HomePage = () => {
                         </div>
                     ))}
                 </div>
-
                 {/* Right Column: Available Users in Card Form */}
                 <div className="flex flex-col w-full lg:w-3/4 space-y-4">
                     <h3 className="text-lg font-semibold text-teal-400">Available Users</h3>
@@ -147,20 +146,16 @@ const HomePage = () => {
                         ))}
                     </div>
                     {isChatOpen && selectedUser && currentUser && (
-                <div className="w-full max-w-4xl p-4 mt-6 bg-teal-800 rounded-lg shadow-xl">
-                    <ChatBox
-                        currentUser={currentUser}
-                        selectedUser={selectedUser}
-                        setIsChatOpen={setIsChatOpen}
-                    />
+                        <div className="w-full max-w-4xl p-4 mt-6 bg-teal-800 rounded-lg shadow-xl">
+                            <ChatBox
+                                currentUser={currentUser}
+                                selectedUser={selectedUser}
+                                setIsChatOpen={setIsChatOpen}
+                            />
+                        </div>
+                    )}
                 </div>
-            )}
-                </div>
-                
             </div>
-
-
-         
         </div>
     );
 };
