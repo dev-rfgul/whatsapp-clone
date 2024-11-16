@@ -80,7 +80,7 @@ const HomePage = () => {
 
                 <div className="flex items-center space-x-4">
                     <img
-                        src={currentUser?.profileImage || "https://cdn-icons-png.flaticon.com/512/1326/1326405.png"}
+                        src={currentUser?.image || "https://cdn-icons-png.flaticon.com/512/1326/1326405.png"}
                         alt="Profile"
                         className="w-16 h-16 rounded-full object-cover cursor-pointer transition-transform transform hover:scale-110"
                         onClick={() => document.getElementById('profile-image-input').click()}
